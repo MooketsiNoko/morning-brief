@@ -1,6 +1,6 @@
 # Morning Brief AI
 
-A personal morning assistant that pulls live news and sports scores, 
+A fun Gen Z styled personal morning assistant that pulls live news and sports scores, 
 generates an AI-written daily digest in your tone, and curates a 
 mood-matched playlist — all in one run.
 
