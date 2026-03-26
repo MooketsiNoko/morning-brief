@@ -1,4 +1,4 @@
-# 🌅 Morning Brief AI
+# Morning Brief AI
 
 A personal morning assistant that pulls live news and sports scores, 
 generates an AI-written daily digest in your tone, and curates a 
