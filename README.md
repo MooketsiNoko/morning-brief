@@ -1,27 +1,71 @@
 # Morning Brief AI
 
-A fun Gen Z styled personal morning assistant that pulls live news and sports scores, 
-generates an AI-written daily digest in your tone, and curates a 
-mood-matched playlist — all in one run.
+A fully automated Gen Z toned personal morning assistant that runs every day at 6AM 
+on AWS — no manual input required. Pulls live news and sports scores, 
+generates an AI-written daily digest, curates a mood-matched playlist, 
+and saves everything to the cloud.
+
+## Architecture
+```
+CloudWatch (6AM daily)
+        ↓
+   AWS Lambda
+        ↓
+  ┌─────┴─────┐
+  │           │
+NewsAPI    ESPN API
+  │           │
+  └─────┬─────┘
+        ↓
+  Anthropic Claude
+  (brief + vibe detection)
+        ↓
+  Anthropic Claude
+  (playlist curation)
+        ↓
+     AWS S3
+  (stores daily brief)
+```
 
 ## What it does
 
 - 📰 Fetches top headlines across tech and sports via NewsAPI
 - 🏀 Pulls live and recent scores for your teams via ESPN's API
-- 🤖 Uses Claude (Anthropic) to write a personalized morning digest 
+- 🤖 Uses Claude (Anthropic) to write a personalized morning digest
   and determine the day's vibe
 - 🎵 Generates a 10-track mood-matched playlist with direct Spotify links
+- ☁️ Saves each day's brief as JSON to AWS S3
+- ⏰ Runs automatically every morning via CloudWatch + Lambda
 
 ## Tech Stack
 
 - **Python** — core logic
+- **AWS Lambda** — serverless compute
+- **AWS S3** — cloud storage for daily briefs
+- **AWS CloudWatch** — daily schedule trigger
 - **Anthropic Claude API** — brief generation + vibe detection + playlist curation
 - **NewsAPI** — live headlines
-- **ESPN API** — real-time scores
+- **ESPN API** — real-time scores (no key required)
 - **Spotipy + Spotify API** — playlist generation
 - **python-dotenv** — environment variable management
 
-## Setup
+## Project Structure
+```
+morning-brief/
+├── src/
+│   ├── news.py            # fetches live headlines
+│   ├── sports.py          # fetches live scores
+│   ├── brief.py           # AI generates digest + detects vibe
+│   ├── playlist.py        # AI curates mood-matched playlist
+│   ├── storage.py         # saves brief to AWS S3
+│   └── main.py            # runs everything locally
+├── lambda_function.py     # AWS Lambda entry point
+├── trust-policy.json      # IAM role policy
+├── .env                   # API keys (not committed)
+└── README.md
+```
+
+## Running Locally
 
 1. Clone the repo
 ```bash
@@ -32,11 +76,11 @@ mood-matched playlist — all in one run.
 2. Create a virtual environment and install dependencies
 ```bash
    python -m venv venv
-   venv\Scripts\activate  # Windows
-   pip install requests python-dotenv anthropic spotipy
+   venv\Scripts\activate
+   pip install requests python-dotenv anthropic spotipy boto3
 ```
 
-3. Create a `.env` file in the root with your API keys
+3. Create a `.env` file with your API keys
 ```
    NEWS_API_KEY=your_news_api_key
    ANTHROPIC_API_KEY=your_anthropic_api_key
@@ -55,32 +99,25 @@ mood-matched playlist — all in one run.
    python src/main.py
 ```
 
+## AWS Deployment
+
+The app is deployed as a Lambda function triggered daily by CloudWatch Events.
+API keys are stored as Lambda environment variables.
+Each brief is saved to S3 at `s3://morning-brief-mooketsi/briefs/YYYY-MM-DD.json`
+
 ## Example Output
 ```
 🌅 YOUR MORNING BRIEF
-Rise and grind gang, we got some juicy stuff today! Lakers are cooking 
-the Pacers right now, up 126-113. Mo Salah officially leaving Liverpool 
-after 9 years — emotional damage. Apple dropped iOS 26.4 with actually 
-decent updates for once.
+Rise and grind gang, we got some juicy stuff today! Lakers cooked the 
+Pacers 137-130 last night — that offense was absolutely unhinged. 
+Marvel Rivals confirmed for Switch 2, devs said "bet." Joe Flacco back 
+with the Bengals because that man simply refuses to retire.
 
-🎯 TODAY'S VIBE: CURIOUS
+🎯 TODAY'S VIBE: HYPE
 
-🎵 Morning Brief Playlist — Curious Vibe
-  Mortal Man — Kendrick Lamar
-  Broken Clocks — SZA
-  Cellophane — FKA twigs
+🎵 Morning Brief Playlist — Hype Vibe
+  DNA. — Kendrick Lamar
+  Sicko Mode — Travis Scott
+  Big Energy — Latto
   ...
-```
-
-## Project Structure
-```
-morning-brief/
-├── src/
-│   ├── news.py        # fetches live headlines
-│   ├── sports.py      # fetches live scores
-│   ├── brief.py       # AI generates digest + detects vibe
-│   ├── playlist.py    # AI curates mood-matched playlist
-│   └── main.py        # runs everything together
-├── .env               # API keys (not committed)
-└── README.md
 ```
